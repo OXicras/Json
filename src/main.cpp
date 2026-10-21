@@ -8,7 +8,7 @@ void setup()
   const char* resposta = R"(
   {
     "nome" : "Bruno",
-    "idade" : 19,
+    "idade" : "19",
     "naturalidade" : "Sao Bernardo do Campo/SP",
     "isSingle" : true
   }
@@ -22,17 +22,27 @@ void setup()
     Serial.printf("Erro: %s\n\r", erroJson.c_str());
     return;
   }
-  const char* nome = doc["nome"];
-  int idade = doc["idade"];
-  const char* naturalidade = doc["naturalidade"];
+
+  //* isNull() não se usa mais, usamos is<TipoDaVariavel>() que além de verificar se a variável existe,
+  //* ainda verifica se o valor está no tipo certo
+  String nome = "não definido";
+  if(doc["nome"].is<const char*>())
+    nome = doc["nome"].as<String>();
+
+
+  //* verificar a existencia da chave e um valor padrão caso não existir
+  String idade = doc["idade"] | "não definido";
+
+  String naturalidade = doc["naturalidade"] | "não definido";
+
   bool estadoCivil = doc["isSingle"];
 
-  Serial.printf("\nMeu nome é: %s, tenho %d anos, nasci em %s e sou %s", 
-                nome,
-                idade,
-                naturalidade,
-                estadoCivil ? "solteiro" : "comprometido"
-              );
+  Serial.printf("\nMeu nome é %s, tenho %s anos, nasci em %s e sou %s", 
+    nome.c_str(),
+    idade.c_str(),
+    naturalidade.c_str(),
+    estadoCivil ? "solteiro" : "comprometido"
+  );
 }
 
 void loop() 
