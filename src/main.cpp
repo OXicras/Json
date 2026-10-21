@@ -57,8 +57,6 @@ void setup()
   int tamanhoVetor = sizeof(hobbies) / sizeof(hobbies[0]);
   if(doc["hobbies"].is<JsonArray>())
   {
-    JsonArrayConst qntIndicesArray = doc["hobbies"].as<JsonArrayConst>();
-
     for(JsonVariantConst v : doc["hobbies"]. as<JsonArrayConst>())
     {
       if (quantidade >= tamanhoVetor) break; //* limitando a quantidade de itens dentro do meu vetor
