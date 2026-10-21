@@ -15,8 +15,13 @@ void setup()
   )";
 
   JsonDocument doc;
-  deserializeJson(doc, resposta);
+  DeserializationError erroJson = deserializeJson(doc, resposta);
 
+  if(erroJson)
+  {
+    Serial.printf("Erro: %s\n\r", erroJson.c_str());
+    return;
+  }
   const char* nome = doc["nome"];
   int idade = doc["idade"];
   const char* naturalidade = doc["naturalidade"];
