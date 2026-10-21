@@ -11,8 +11,14 @@ void setup()
     "idade" : 19,
     "temperatura" : 37,
     "isSingle" : true
+    "hobbies" : [
+      "Música",
+      "Jogos",
+      "Animes",
+      "Livros"
+      ]
   }
-  )";
+)";
 
   JsonDocument doc;
   DeserializationError erroJson = deserializeJson(doc, resposta);
@@ -36,6 +42,7 @@ void setup()
   //* verificar a existencia da chave e um valor padrão caso não existir
   String naturalidade = doc["naturalidade"] | "não definido";
 
+  //? normalmente uma variavel booleana tem como valor padrão false
   bool estadoCivil = doc["isSingle"] | false;
 
   int temperatura;
@@ -43,6 +50,22 @@ void setup()
 
   if(doc["temperatura"].is<int>())
     temperatura = doc["temperatura"];
+
+  //todo TRATAMENTO DE VETORES
+  const char* hobbies[10];
+  size_t quantidade = 0;
+  int tamanhoVetor = sizeof(hobbies) / sizeof(hobbies[0]);
+  if(doc["hobbies"].is<JsonArray>())
+  {
+    JsonArrayConst qntIndicesArray = doc["hobbies"].as<JsonArrayConst>();
+
+    for(JsonVariantConst v : doc["hobbies"]. as<JsonArrayConst>())
+    {
+      if (quantidade >= tamanhoVetor) break; //* limitando a quantidade de itens dentro do meu vetor
+      hobbies[quantidade] = v | "";
+      quantidade ++;
+    }
+  }
 
   Serial.printf("\nMeu nome é %s, tenho %s anos, nasci em %s e sou %s", 
     nome.c_str(),
