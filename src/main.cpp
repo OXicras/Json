@@ -15,8 +15,15 @@ void setup()
       "Música",
       "Jogos",
       "Animes",
-      "Livros"
-      ]
+      "Livros"],
+    "endereco" : {
+      "rua" : "Niteroi",
+      "numero" : "10",
+      "coordenadas" : {
+        "lat" : -23.62,
+        "lon" : -46.55
+      }
+    }
   }
 )";
 
@@ -94,21 +101,73 @@ void setup()
   temperatura = 36; //? exemplo de variavel existente que já continha um valor anterior
 
   if(doc["temperatura"].is<int>())
-    temperatura = doc["temperatura"];
+    temperatura = doc["temperatura"].as<int>();
 
   //todo TRATAMENTO DE VETORES
   const char* hobbies[10];
   size_t quantidade = 0;
-  int tamanhoVetor = sizeof(hobbies) / sizeof(hobbies[0]);
+  //* size_t é um tipo inteiro usado parar representar tamanhos e quantidade
+  //* de bytes de memória, números de elementos e índices de vetor, é o tipo que
+  //* a funcão sizeof() retorna. Não tem sinal (unsigned) e a largura depende
+  //* da arquitetura mas tem o tamanho necessário para representar qualquer objeto
+  //* na memória da maquina em questão.
+
+  //* sizeof retorna o tamanho do vetor em bytes porém cada posicão pode ter mais que um byte
+  //* por isso dividimos o tamanho total pelo tamanho de um item de vetor existente
+  //* como sempre existe a posicão [0], usamos ela como padrão.
+  //! sizeof() em printf usar %zu
+  size_t tamanhoVetor = sizeof(hobbies) / sizeof(hobbies[0]);
+
+
+  int numeros[] = {10, 20, 30, 40};
+  //* for range-based for loop | for baseado em intervalos
+  //* informalmente é chamado de foreach (para cada) pq é o nome
+  //* do mesmo recurso em outras linguagens.
+  for(int n : numeros)
+  {
+    Serial.println(n);
+  }
+
+  //TODO Esse for de cima faz a mesma coisa que o de baixo
+
+  size_t tamanhoVetorExmp = sizeof(numeros) / sizeof(numeros[0]);
+  //? Esse cálculo serve para ter a quantidade de itens dentro de um vetor
+  //? sizeof(numeros) = 16 bytes / sizeof(numeros[0]) = 4 bytes   =   4 itens no vetor
+  //? tamanho do vetor           / tamanho da posicão que sempre existe em um vetor
+
+  for(int i = 0; i < tamanhoVetorExmp; i++)
+  {
+    int n = numeros[i];
+    Serial.println(n);
+  }
+
+  
   if(doc["hobbies"].is<JsonArray>())
   {
-    for(JsonVariantConst v : doc["hobbies"]. as<JsonArrayConst>())
+    for(JsonVariantConst v : doc["hobbies"].as<JsonArrayConst>())
     {
-      if (quantidade >= tamanhoVetor) break; //* limitando a quantidade de itens dentro do meu vetor
-      hobbies[quantidade] = v | "";
-      quantidade ++;
+      if (quantidade >= tamanhoVetor) break; //* evita estouro de vetor
+      hobbies[quantidade++] = v | "Não definido";
     }
   }
+
+  //* JsonVariantConst representa um valor Json qualquer: texto, número, booleano, null, objeto ou array
+  //* O tipo só é conhecido em tempo de execucão, por isso é necessário verificar com is<T>() e converter
+  //* com as<T>(). É usado quando ainda não se sabe ou não importa o que está sendo guardado ali.
+
+  //* JsonArrayConst representa um array Json, e oferece operacões de array:
+  //* array.size()        retorna a quantidade de itens
+  //* array.isNull()      retorna true, senão aponta para um array
+  //* array.nesting()     retorna a profundidade de alinhamento dentro do array
+  //* array[i] = item na posicão i ex.: array[1].as<const char*>() retornaria um texto
+  //* array[i] | default retorna item ou valor padrão se null
+  //* array[i].is<T>() retorna true para o teste de tipo T
+  //* Acessar um indice fora do limite do array não trava, retorna valor nulo (0, false, nullptr)
+
+  //* Em casos de numeros ou booleanos é possivel copiar um array para outro (não funciona com strings)
+  //* int notas[10];
+  //* size_t quantidadeItensCopiados = copyArray(doc["numeros"].as<JsonArrayConst>(),notas);
+  //* quando o vetor destino enche não trava e devolve quantos itens foram copiados
 
   Serial.printf("\nMeu nome é %s, tenho %s anos, nasci em %s e sou %s", 
     nome.c_str(),
@@ -116,9 +175,20 @@ void setup()
     naturalidade.c_str(),
     estadoCivil ? "solteiro" : "comprometido"
   );
+
+  //* Aninhamento
+  //* Jeito 01
+  const char* rua = doc["endereco"]["rua"].as<const char*>();
+  float lat = doc["endereco"]["coordenadas"]["lat"] | 0.0f;
+
+  //* Jeito 02
+  JsonObjectConst endereco = doc["endereco"];
+  Serial.println(endereco["rua"].as<const char*>());
+  Serial.println(endereco["coordenadas"]["lat"].as<float>());
+
+  JsonObjectConst coordenadas = doc["endereco"]["coordenadas"];
+  Serial.println(coordenadas["lat"].as<float>());
+  Serial.println(coordenadas["lon"] | 0.0f);
 }
 
-void loop() 
-{
-  
-}
+void loop() {}
