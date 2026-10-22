@@ -10,7 +10,7 @@ void setup()
     "nome" : "Bruno",
     "idade" : 19,
     "temperatura" : 37,
-    "isSingle" : true
+    "isSingle" : true,
     "hobbies" : [
       "Música",
       "Jogos",
@@ -21,13 +21,55 @@ void setup()
 )";
 
   JsonDocument doc;
+  //* DeserializationError é um tipo, uma classe, do ArduínoJson que guarda um código
+  //* informando que o parse (Segmentacão de chave valor) terminou
   DeserializationError erroJson = deserializeJson(doc, resposta);
 
-  if(erroJson)
+  //! Possibilidades do Deserialization Error
+  //* 0 ou Ok                      sucesso
+  //? 1 ou EmptyInput              entrada vazia ou timeout da Stream
+  //? 2 ou IncompleteInput         Json cortado antes de terminar
+  //? 3 ou InvalidInput            Sintáxe inválida
+  //? 4 ou NoMemory                Memória insuficiente para montar o documento
+  //? 5 ou TooDeep                 Alinhamento acima do limite definido pela funcão 
+  //?                              NestingLimit, definido como padrão em
+  //?                              ARDUINO_DEFAULT_NESTING_LIMIT = 10; Cada {} ou []
+  //?                              aberto dentro de outro, soma um nível.
+  //todo                             exemplo:
+  //*                                   {
+  //*                                     "a" : {
+  //*                                               "b" : [1,2];
+  //*                                           }
+  //*                                   } tem 3 níveis
+
+  switch(erroJson.code())
   {
-    Serial.printf("Erro ao deserializar: %s\n\r", erroJson.c_str());
-    return;
+    case DeserializationError::Ok: break;
+    case DeserializationError::EmptyInput: 
+      Serial.println("JSON vazio ou expirou o tempo"); 
+      return;
+    case DeserializationError::InvalidInput:
+      Serial.println("JSON mal formado");
+      return;
+    case DeserializationError::IncompleteInput:
+      Serial.println("JSON incompleto");
+      return;
+    case DeserializationError::NoMemory:
+      Serial.println("Sem memoria");
+      return;
+    case DeserializationError::TooDeep:
+      Serial.println("Alinhamento acima do limite definido pela funcão");
+      return;
+    default:
+      Serial.println(erroJson.c_str());
+      return;
   }
+
+  // if(erroJson)
+  // {
+  //   Serial.printf("Erro ao deserializar: %s\n\r", erroJson.c_str());
+  //   return;
+  // }
 
   //* isNull() não se usa mais, usamos is<TipoDaVariavel>() que além de verificar se a variável existe,
   //* ainda verifica se o valor está no tipo certo
@@ -36,15 +78,18 @@ void setup()
     nome = doc["nome"].as<String>();
 
 
-  //* verificar a existencia da chave, caso não existir passasse um valor negativo
-  //* para indicar a inexistencia, pois 0 neste caso é um valor impossivel
+  //* verificar a existencia da chave, caso não existir, passa-se um valor negativo (operador | )
+  //* para indicar a inexistencia, pois 0 neste caso é um valor impossivel.
+
+  //? O simbolo '|' (pipe) aqui não é um "OU bit a bit", a biblioteca redefine esse
+  //? operador para significar "Valor padrão", a lógica é: se o valor da esquerda
+  //? puder ser convertido para o tipo da direita ele é usado; se não, usa o da direita.
   int idade = doc["idade"] | -1;
   //* verificar a existencia da chave e um valor padrão caso não existir
   String naturalidade = doc["naturalidade"] | "não definido";
 
   //? normalmente uma variavel booleana tem como valor padrão false
   bool estadoCivil = doc["isSingle"] | false;
-
   int temperatura;
   temperatura = 36; //? exemplo de variavel existente que já continha um valor anterior
 
@@ -67,7 +112,7 @@ void setup()
 
   Serial.printf("\nMeu nome é %s, tenho %s anos, nasci em %s e sou %s", 
     nome.c_str(),
-    idade > 0? String(idade).c_str() : "Não definido",
+    idade > -1? String(idade).c_str() : "Não definido",
     naturalidade.c_str(),
     estadoCivil ? "solteiro" : "comprometido"
   );
