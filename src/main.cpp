@@ -105,7 +105,7 @@ void setup()
 
   //todo TRATAMENTO DE VETORES
   const char* hobbies[10];
-  size_t quantidade = 0;
+  size_t posicaoVetorInteracao = 0;
   //* size_t é um tipo inteiro usado parar representar tamanhos e quantidade
   //* de bytes de memória, números de elementos e índices de vetor, é o tipo que
   //* a funcão sizeof() retorna. Não tem sinal (unsigned) e a largura depende
@@ -146,8 +146,8 @@ void setup()
   {
     for(JsonVariantConst v : doc["hobbies"].as<JsonArrayConst>())
     {
-      if (quantidade >= tamanhoVetor) break; //* evita estouro de vetor
-      hobbies[quantidade++] = v | "Não definido";
+      if (posicaoVetorInteracao >= tamanhoVetor) break; //* evita estouro de vetor
+      hobbies[posicaoVetorInteracao++] = v | "Não definido";
     }
   }
 
@@ -178,13 +178,17 @@ void setup()
 
   //* Aninhamento
   //* Jeito 01
-  const char* rua = doc["endereco"]["rua"].as<const char*>();
+  if(doc["endereco"]["rua"].is<const char*>())
+    const char* rua = doc["endereco"]["rua"].as<const char*>();
   float lat = doc["endereco"]["coordenadas"]["lat"] | 0.0f;
 
   //* Jeito 02
-  JsonObjectConst endereco = doc["endereco"];
-  Serial.println(endereco["rua"].as<const char*>());
-  Serial.println(endereco["coordenadas"]["lat"].as<float>());
+  if(doc["endereco"].is<JsonObject>())
+  {
+    JsonObjectConst endereco = doc["endereco"];
+    Serial.println(endereco["rua"].as<const char*>());
+    Serial.println(endereco["coordenadas"]["lat"].as<float>());
+  }
 
   JsonObjectConst coordenadas = doc["endereco"]["coordenadas"];
   Serial.println(coordenadas["lat"].as<float>());
